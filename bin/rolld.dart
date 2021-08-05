@@ -17,22 +17,15 @@ class Dice {
 
   Dice(this.number, this.die, this.modifier);
 
-  int get standard {
-    return (number * (die ~/ 2)) + modifier;
-  }
+  int get standard => (number * (die ~/ 2)) + modifier;
 
-  int get low {
-    return number + modifier;
-  }
+  int get low => number + modifier;
 
-  int get high {
-    return (number * die) + modifier;
-  }
+  int get high => (number * die) + modifier;
 
   @override
-  String toString() {
-    return '${number}d$die${modifier > 0 ? '+' : ''}${modifier != 0 ? modifier : ''}';
-  }
+  String toString() =>
+      '${number}d$die${modifier > 0 ? '+' : ''}${modifier != 0 ? modifier : ''}';
 
   static Dice fromSpec(String spec) {
     final firstMatch = RegExp(diceSpecEx).allMatches(spec).first;
@@ -54,15 +47,11 @@ class RollResults {
 
   RollResults(this.rolls, this.modifier);
 
-  int get value {
-    return rolls.reduce((value, element) => value + element) + modifier;
-  }
+  int get value => rolls.reduce((value, element) => value + element) + modifier;
 
   @override
-  String toString() {
-    final mod = '${modifier >= 0 ? '+' : '-'} $modifier';
-    return '$value\t= (${rolls.join(' + ')}) $mod';
-  }
+  String toString() =>
+      '$value\t= (${rolls.join(' + ')}) ${modifier >= 0 ? '+' : '-'} $modifier';
 }
 
 // FIXME: add more to the usage info
@@ -106,11 +95,11 @@ void main(List<String> arguments) {
 }
 
 RollResults roll(Dice dice) {
-  final rolls = <int>[];
-
-  for (var r = 0; r < dice.number; r++) {
-    rolls.add(rng.nextInt(dice.die) + 1);
-  }
-
-  return RollResults(rolls, dice.modifier);
+  return RollResults(
+    Iterable<int>.generate(dice.number)
+        .toList()
+        .map((e) => rng.nextInt(dice.die) + 1)
+        .toList(),
+    dice.modifier,
+  );
 }
