@@ -5,8 +5,10 @@ import 'package:args/args.dart';
 const showDetails = 'show-details';
 const numRolls = 'num-rolls';
 const help = 'help';
+const stats = 'stats';
 
 const diceSpecEx = '([0-9]*)d([0-9]*)([+|-]?[0-9]*)';
+final rng = Random.secure();
 
 class Dice {
   final int number;
@@ -14,6 +16,18 @@ class Dice {
   final int modifier;
 
   Dice(this.number, this.die, this.modifier);
+
+  int get standard {
+    return (number * (die ~/ 2)) + modifier;
+  }
+
+  int get low {
+    return number + modifier;
+  }
+
+  int get high {
+    return (number * die) + modifier;
+  }
 
   @override
   String toString() {
@@ -57,7 +71,8 @@ void main(List<String> arguments) {
   final parser = ArgParser()
     ..addFlag(help, negatable: false, abbr: 'h')
     ..addFlag(showDetails, negatable: false, abbr: 'd')
-    ..addOption(numRolls, abbr: 'n', valueHelp: 'num_rolls');
+    ..addOption(numRolls, abbr: 'n', valueHelp: 'num_rolls')
+    ..addFlag(stats, negatable: false, abbr: 's');
 
   var args = parser.parse(arguments);
 
@@ -68,16 +83,29 @@ void main(List<String> arguments) {
     final dice = Dice.fromSpec(args.rest[0]);
 
     print('Rolling $dice $cnt time${cnt > 1 ? 's' : ''}...');
+    print('-----------------------------------------------');
+
+    final values = <int>[];
 
     for (var r = 0; r < cnt; r++) {
-      print('[${r + 1}]\t${roll(dice)}');
+      var rolled = roll(dice);
+      values.add(rolled.value);
+
+      print('[${r + 1}]\t$rolled');
+    }
+
+    if (args[stats]) {
+      final minVal = values.reduce(min);
+      final maxVal = values.reduce(max);
+      final avgVal = values.reduce((v, e) => v + e) / values.length;
+      print('-----------------------------------------------');
+      print('Rolls: $minVal - $maxVal (avg: $avgVal)');
+      print('Dice : ${dice.low} - ${dice.high} (avg: ${dice.standard})');
     }
   }
 }
 
 RollResults roll(Dice dice) {
-  var rng = Random.secure();
-
   final rolls = <int>[];
 
   for (var r = 0; r < dice.number; r++) {
